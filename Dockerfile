@@ -1,27 +1,28 @@
-## Parent image
 FROM python:3.10-slim
 
-## Essential environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-## Work directory inside the docker container
 WORKDIR /app
 
-## Installing system dependancies
+# System dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-## Copying ur all contents from local to app
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
 COPY . .
 
-## Run setup.py
-RUN pip install --no-cache-dir -e .
+# 🔑 THE MAGIC LINE
+ENV PYTHONPATH=/app
 
-# Used PORTS
-EXPOSE 8501
+# Cloud Run uses 8080
+EXPOSE 8080
 
-# Run the app 
-CMD ["streamlit", "run", "app/app.py", "--server.port=8501", "--server.address=0.0.0.0","--server.headless=true"]
+# Run Streamlit
+CMD ["streamlit", "run", "app/app.py", "--server.port=8080", "--server.address=0.0.0.0", "--server.headless=true"]
